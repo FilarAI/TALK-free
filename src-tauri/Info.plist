@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Typr needs microphone access to record audio for transcription.</string>
+    <string>WisprFREE needs microphone access to record audio for transcription.</string>
 </dict>
 </plist>

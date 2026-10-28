@@ -1,164 +1,271 @@
 <!doctype html>
-<html lang="en" data-theme="system">
+<html lang="pl" data-theme="system">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Typr</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <title>WisprFREE</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <div id="app">
       <div id="titlebar" data-tauri-drag-region></div>
       <div id="app-body">
-      <aside id="sidebar">
-        <div class="sidebar-header">
-          <div class="app-identity">
-            <svg class="app-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <rect width="18" height="18" rx="4" fill="currentColor" opacity="0.15"/>
-              <path d="M5 6.5h8M5 9h5.5M5 11.5h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-            </svg>
-            <span class="app-name">Typr</span>
-          </div>
-          <div id="status-indicator">
-            <span id="status-dot"></span>
-            <span id="status-text">Ready</span>
-          </div>
-        </div>
-        <nav id="sidebar-nav">
-          <a class="nav-item active" data-section="general">
-            <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M8 5v3l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            General
-          </a>
-          <a class="nav-item" data-section="engine">
-            <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2.5 8h3l1.5-3 2 6 1.5-3h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Engine
-          </a>
-          <a class="nav-item" data-section="recording">
-            <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <rect x="6" y="2.5" width="4" height="7" rx="2" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M4 8.5a4 4 0 008 0M8 12.5v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-            </svg>
-            Recording
-          </a>
-        </nav>
-        <div class="sidebar-footer">
-          <span class="version-text">v0.1.0</span>
-        </div>
-      </aside>
-
-      <main id="content">
-        <section id="section-general" class="content-section active">
-          <div class="section-header">
-            <h2 class="section-title">General</h2>
-            <p class="section-desc">Configure your audio input device</p>
-          </div>
-          <div class="settings-list">
-            <div class="setting-row">
-              <div class="setting-label">
-                <span class="label-text">Microphone</span>
-                <span class="label-hint">Select your preferred input device</span>
-              </div>
-              <div class="setting-control">
-                <select id="mic-select"></select>
+        <aside id="sidebar">
+          <div class="sidebar-header">
+            <div class="app-identity">
+              <img class="app-icon" src="/app-icon.png" alt="" width="32" height="32" />
+              <div class="app-name-wrap">
+                <span class="app-name">WisprFREE</span>
+                <span class="app-by">by Filar AI</span>
               </div>
             </div>
-            <div class="setting-row">
-              <div class="setting-label">
-                <span class="label-text">Theme</span>
-                <span class="label-hint">App appearance</span>
-              </div>
-              <div class="setting-control">
-                <div class="toggle-group">
-                  <button class="toggle-btn theme-btn" data-theme="dark">Dark</button>
-                  <button class="toggle-btn theme-btn active" data-theme="system">System</button>
-                  <button class="toggle-btn theme-btn" data-theme="light">Light</button>
+            <div id="status-indicator" role="status" aria-live="polite">
+              <span id="status-dot" class="ready"></span>
+              <span id="status-text">Gotowy</span>
+            </div>
+          </div>
+
+          <nav id="sidebar-nav">
+            <a class="nav-item active" data-section="general" href="#">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="6.5" cy="5" r="1.6" fill="var(--sidebar-bg)" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="11.5" cy="9" r="1.6" fill="var(--sidebar-bg)" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="7.5" cy="13" r="1.6" fill="var(--sidebar-bg)" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              Ogólne
+            </a>
+            <a class="nav-item" data-section="engine" href="#">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="M2.5 9h2.5l2-4.5 3 9 2-4.5h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Silnik
+              <span class="nav-badge" id="engine-badge" hidden aria-label="Brak klucza">!</span>
+            </a>
+            <a class="nav-item" data-section="recording" href="#">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <rect x="6.5" y="2.5" width="5" height="8.5" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M4 9a5 5 0 0010 0M9 14v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Nagrywanie
+            </a>
+          </nav>
+
+          <div class="sidebar-footer">
+            <span class="version-text">Wersja 0.1.0</span>
+          </div>
+        </aside>
+
+        <main id="content">
+          <!-- OGÓLNE -->
+          <section id="section-general" class="content-section active">
+            <header class="section-header">
+              <h1 class="section-title">Ogólne</h1>
+              <p class="section-desc">Mikrofon, wygląd i wskaźnik nagrywania</p>
+            </header>
+
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label class="label-text" for="mic-select">Mikrofon</label>
+                  <span class="label-hint" id="mic-hint">Urządzenie, z którego nagrywasz</span>
+                </div>
+                <div class="setting-control">
+                  <select id="mic-select"></select>
                 </div>
               </div>
             </div>
-            <div class="setting-row">
-              <div class="setting-label">
-                <span class="label-text">Always on Top</span>
-                <span class="label-hint">Keep mic indicator above all other windows</span>
-              </div>
-              <div class="setting-control">
-                <label class="switch">
-                  <input type="checkbox" id="always-on-top" checked />
-                  <span class="switch-track"></span>
-                </label>
-              </div>
-            </div>
-            <div class="setting-row">
-              <div class="setting-label">
-                <span class="label-text">Indicator Position</span>
-                <span class="label-hint">Where the mic icon appears on screen</span>
-              </div>
-              <div class="setting-control">
-                <div class="position-grid" id="position-grid">
-                  <button class="pos-btn" data-pos="top-left">↖</button>
-                  <button class="pos-btn" data-pos="top-center">↑</button>
-                  <button class="pos-btn" data-pos="top-right">↗</button>
-                  <button class="pos-btn" data-pos="bottom-left">↙</button>
-                  <button class="pos-btn" data-pos="bottom-center">↓</button>
-                  <button class="pos-btn" data-pos="bottom-right">↘</button>
+
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-label">
+                  <span class="label-text">Motyw</span>
+                  <span class="label-hint">Wygląd okna ustawień</span>
+                </div>
+                <div class="setting-control">
+                  <div class="segmented" role="radiogroup" aria-label="Motyw">
+                    <button class="segment theme-btn" data-theme="light" role="radio">Jasny</button>
+                    <button class="segment theme-btn" data-theme="system" role="radio">System</button>
+                    <button class="segment theme-btn" data-theme="dark" role="radio">Ciemny</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section id="section-engine" class="content-section">
-          <div class="section-header">
-            <h2 class="section-title">Engine</h2>
-            <p class="section-desc">OpenAI Whisper API transcription</p>
-          </div>
-          <div class="settings-list">
-            <div class="setting-row">
-              <div class="setting-label">
-                <span class="label-text">OpenAI API Key</span>
-                <span class="label-hint">Get your key from platform.openai.com/api-keys</span>
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label class="label-text" for="always-on-top">Zawsze na wierzchu</label>
+                  <span class="label-hint">Wskaźnik nad wszystkimi oknami, także na pełnym ekranie</span>
+                </div>
+                <div class="setting-control">
+                  <label class="switch">
+                    <input type="checkbox" id="always-on-top" />
+                    <span class="switch-track"></span>
+                  </label>
+                </div>
               </div>
-              <div class="setting-control">
-                <input type="password" id="openai-key" placeholder="sk-..." />
+              <div class="setting-row">
+                <div class="setting-label">
+                  <span class="label-text">Położenie wskaźnika</span>
+                  <span class="label-hint">Gdzie na ekranie pojawia się pigułka</span>
+                </div>
+                <div class="setting-control">
+                  <div class="position-grid" role="radiogroup" aria-label="Położenie wskaźnika">
+                    <button class="pos-btn" data-pos="top-left" aria-label="Lewy górny róg"><span></span></button>
+                    <button class="pos-btn" data-pos="top-center" aria-label="Góra, środek"><span></span></button>
+                    <button class="pos-btn" data-pos="top-right" aria-label="Prawy górny róg"><span></span></button>
+                    <button class="pos-btn" data-pos="bottom-left" aria-label="Lewy dolny róg"><span></span></button>
+                    <button class="pos-btn" data-pos="bottom-center" aria-label="Dół, środek"><span></span></button>
+                    <button class="pos-btn" data-pos="bottom-right" aria-label="Prawy dolny róg"><span></span></button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section id="section-recording" class="content-section">
-          <div class="section-header">
-            <h2 class="section-title">Recording</h2>
-            <p class="section-desc">Configure your hotkeys — both work independently</p>
-          </div>
-          <div class="settings-list">
-            <div class="setting-row">
-              <div class="setting-label">
-                <span class="label-text">Toggle Hotkey</span>
-                <span class="label-hint">Press once to start, press again to stop &amp; transcribe</span>
-              </div>
-              <div class="setting-control">
-                <button id="hotkey-toggle-btn" class="hotkey-btn">⌘ ⇧ Space</button>
+          <!-- SILNIK -->
+          <section id="section-engine" class="content-section">
+            <header class="section-header">
+              <h1 class="section-title">Silnik</h1>
+              <p class="section-desc">Kto zamienia mowę na tekst i w jakim języku</p>
+            </header>
+
+            <div class="banner" id="key-banner" hidden>
+              <span id="key-banner-text">Brak klucza Groq. Bez niego dyktowanie nie zadziała.</span>
+              <button class="link-btn" id="key-banner-link">Pobierz darmowy klucz →</button>
+            </div>
+
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-label">
+                  <span class="label-text">Dostawca</span>
+                  <span class="label-hint">Groq: darmowy i szybszy. OpenAI: płatny (whisper-1)</span>
+                </div>
+                <div class="setting-control">
+                  <div class="segmented" role="radiogroup" aria-label="Dostawca">
+                    <button class="segment engine-btn" data-engine="groq" role="radio">Groq</button>
+                    <button class="segment engine-btn" data-engine="openai" role="radio">OpenAI</button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="setting-row">
-              <div class="setting-label">
-                <span class="label-text">Push to Talk Hotkey</span>
-                <span class="label-hint">Hold to record, release to transcribe</span>
+
+            <div class="card">
+              <div class="setting-row key-row" data-provider="groq">
+                <div class="setting-label">
+                  <span class="label-text">Klucz Groq</span>
+                  <span class="label-hint">Darmowy, z console.groq.com</span>
+                </div>
+                <div class="setting-control key-control"></div>
               </div>
-              <div class="setting-control">
-                <button id="hotkey-ptt-btn" class="hotkey-btn">⇧ ⌥ Space</button>
+              <div class="setting-row key-row" data-provider="openai">
+                <div class="setting-label">
+                  <span class="label-text">Klucz OpenAI</span>
+                  <span class="label-hint">Z platform.openai.com/api-keys</span>
+                </div>
+                <div class="setting-control key-control"></div>
+              </div>
+              <p class="card-note">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="3" y="6" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.75 6V4.5a2.25 2.25 0 014.5 0V6" stroke="currentColor" stroke-width="1.3"/></svg>
+                Klucze są w Pęku kluczy macOS. Aplikacja nigdy ich nie pokazuje.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label class="label-text" for="language-select">Język główny</label>
+                  <span class="label-hint">W tym języku dyktujesz najczęściej</span>
+                </div>
+                <div class="setting-control">
+                  <select id="language-select">
+                    <option value="pl">Polski</option>
+                    <option value="en">Angielski</option>
+                    <option value="de">Niemiecki</option>
+                    <option value="es">Hiszpański</option>
+                    <option value="fr">Francuski</option>
+                    <option value="it">Włoski</option>
+                    <option value="uk">Ukraiński</option>
+                    <option value="ru">Rosyjski</option>
+                    <option value="auto">Wykrywaj automatycznie</option>
+                  </select>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label class="label-text" for="secondary-language-select">Język dodatkowy</label>
+                  <span class="label-hint">Też rozpoznawany. Inny język zostanie zapisany jako główny</span>
+                </div>
+                <div class="setting-control">
+                  <select id="secondary-language-select">
+                    <option value="none">Brak</option>
+                    <option value="en">Angielski</option>
+                    <option value="pl">Polski</option>
+                    <option value="de">Niemiecki</option>
+                    <option value="es">Hiszpański</option>
+                    <option value="fr">Francuski</option>
+                    <option value="it">Włoski</option>
+                    <option value="uk">Ukraiński</option>
+                    <option value="ru">Rosyjski</option>
+                  </select>
+                </div>
               </div>
             </div>
+          </section>
+
+          <!-- NAGRYWANIE -->
+          <section id="section-recording" class="content-section">
+            <header class="section-header">
+              <h1 class="section-title">Nagrywanie</h1>
+              <p class="section-desc">Skróty klawiszowe i co dzieje się z tekstem</p>
+            </header>
+
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-label">
+                  <span class="label-text">Włącz / wyłącz nagrywanie</span>
+                  <span class="label-hint">Naciśnij raz, żeby zacząć, drugi raz, żeby zakończyć</span>
+                </div>
+                <div class="setting-control">
+                  <button id="hotkey-toggle-btn" class="hotkey-btn"></button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">
+                  <span class="label-text">Przytrzymaj i mów</span>
+                  <span class="label-hint">Trzymaj, gdy mówisz. Puść, żeby zakończyć</span>
+                </div>
+                <div class="setting-control">
+                  <button id="hotkey-ptt-btn" class="hotkey-btn"></button>
+                </div>
+              </div>
+              <p class="card-note">Kliknij skrót i naciśnij nową kombinację. Esc anuluje.</p>
+            </div>
+
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label class="label-text" for="auto-paste">Wklejaj automatycznie</label>
+                  <span class="label-hint">Tekst pojawia się tam, gdzie miga kursor. Po wyłączeniu trafia tylko do schowka (⌘V)</span>
+                </div>
+                <div class="setting-control">
+                  <label class="switch">
+                    <input type="checkbox" id="auto-paste" />
+                    <span class="switch-track"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div id="save-bar" class="floating-bar" hidden>
+            <span class="floating-text">Masz niezapisane zmiany</span>
+            <button id="discard-btn" class="bar-btn ghost">Odrzuć</button>
+            <button id="save-btn" class="bar-btn primary">Zapisz <kbd>⌘S</kbd></button>
           </div>
-        </section>
-      </main>
+          <div id="toast" class="floating-bar toast" hidden role="alert"></div>
+        </main>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

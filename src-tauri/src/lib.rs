@@ -1,4 +1,5 @@
 pub mod settings;
+pub mod keys;
 pub mod audio;
 pub mod transcribe_groq;
 pub mod cleanup;

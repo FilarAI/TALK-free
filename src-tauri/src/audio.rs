@@ -1,5 +1,6 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use hound::{WavSpec, WavWriter};
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
 
@@ -39,6 +40,8 @@ unsafe impl Sync for SendStream {}
 
 pub struct AudioRecorder {
     samples: Arc<Mutex<Vec<f32>>>,
+    // Latest input loudness (RMS of the last buffer) as f32 bits, for the overlay animation
+    level: Arc<AtomicU32>,
     stream: Option<SendStream>,
     source_sample_rate: u32,
     source_channels: u16,
@@ -48,10 +51,15 @@ impl AudioRecorder {
     pub fn new() -> Self {
         Self {
             samples: Arc::new(Mutex::new(Vec::new())),
+            level: Arc::new(AtomicU32::new(0)),
             stream: None,
             source_sample_rate: 48000,
             source_channels: 1,
         }
+    }
+
+    pub fn level(&self) -> Arc<AtomicU32> {
+        self.level.clone()
     }
 
     pub fn start(&mut self, mic_name: &str) -> Result<(), String> {
@@ -90,12 +98,17 @@ impl AudioRecorder {
         };
 
         let samples = self.samples.clone();
+        let level = self.level.clone();
         let stream = device
             .build_input_stream(
                 &config,
                 move |data: &[f32], _: &cpal::InputCallbackInfo| {
                     let mut buf = samples.lock().unwrap();
                     buf.extend_from_slice(data);
+                    if !data.is_empty() {
+                        let rms = (data.iter().map(|s| s * s).sum::<f32>() / data.len() as f32).sqrt();
+                        level.store(rms.to_bits(), Ordering::Relaxed);
+                    }
                 },
                 |err| {
                     eprintln!("[Typr] Audio stream error: {}", err);

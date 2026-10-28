@@ -1,10 +1,13 @@
 {
   "identifier": "default",
   "description": "Default capabilities",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
-    "global-shortcut:default"
+    "global-shortcut:default",
+    "shell:allow-open"
   ]
 }

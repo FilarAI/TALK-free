@@ -1,68 +1,170 @@
 <!doctype html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <style>
-      * { margin: 0; padding: 0; }
+      @font-face {
+        font-family: "Instrument Sans";
+        src: url("/fonts/instrument-sans-latin-ext-wght-normal.woff2") format("woff2");
+        font-weight: 400 700;
+        unicode-range: U+0100-024F;
+      }
+      @font-face {
+        font-family: "Instrument Sans";
+        src: url("/fonts/instrument-sans-latin-wght-normal.woff2") format("woff2");
+        font-weight: 400 700;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
         background: transparent;
         overflow: hidden;
         user-select: none;
         -webkit-user-select: none;
+        cursor: default;
       }
       body {
         display: flex;
         align-items: center;
         justify-content: center;
         height: 100vh;
+        font-family: "Instrument Sans", -apple-system, sans-serif;
       }
-      .mic {
+
+      .pill {
+        position: relative;
         width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(30, 30, 30, 0.85);
+        height: 8px;
+        border-radius: 9999px;
+        background: rgba(20, 20, 20, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
         display: flex;
         align-items: center;
         justify-content: center;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
+        overflow: hidden;
+        transition:
+          width 260ms cubic-bezier(0.2, 0.9, 0.3, 1),
+          height 260ms cubic-bezier(0.2, 0.9, 0.3, 1),
+          background-color 200ms ease-out;
       }
-      .mic svg {
-        width: 18px;
-        height: 18px;
-        fill: #888;
-        transition: fill 0.3s ease;
+      .layer {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 160ms ease-out;
       }
-      .mic.recording {
-        background: rgba(244, 67, 54, 0.9);
-        border-color: rgba(244, 67, 54, 0.5);
-        animation: pulse 1.2s ease-in-out infinite;
+
+      /* Recording: live waveform */
+      .pill.recording { width: 96px; height: 30px; background: #141414; }
+      .pill.recording .bars { opacity: 1; transition-delay: 120ms; }
+      .bars { gap: 3px; }
+      .bar {
+        width: 3px;
+        height: 3px;
+        border-radius: 9999px;
+        background: #fff;
       }
-      .mic.recording svg {
-        fill: #fff;
+
+      /* Transcribing: three moving dots */
+      .pill.transcribing { width: 56px; height: 30px; background: #141414; }
+      .pill.transcribing .dots { opacity: 1; }
+      .dots { gap: 5px; }
+      .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #fff;
+        animation: wave 900ms ease-in-out infinite;
       }
-      .mic.transcribing {
-        background: rgba(255, 152, 0, 0.9);
-        border-color: rgba(255, 152, 0, 0.5);
-        animation: pulse 1.5s ease-in-out infinite;
+      .dot:nth-child(2) { animation-delay: 150ms; }
+      .dot:nth-child(3) { animation-delay: 300ms; }
+      @keyframes wave {
+        0%, 100% { transform: translateY(0); opacity: 0.4; }
+        50% { transform: translateY(-4px); opacity: 1; }
       }
-      .mic.transcribing svg {
-        fill: #fff;
+
+      /* Copied to clipboard (auto paste off) */
+      .pill.copied { width: 108px; height: 30px; background: #141414; }
+      .pill.copied .label-copied { opacity: 1; }
+
+      /* Error */
+      .pill.error { width: 64px; height: 30px; background: #d92d20; animation: shake 360ms ease-in-out; }
+      .pill.error .label-error { opacity: 1; }
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
       }
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.15); opacity: 0.8; }
+
+      .label {
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .pill, .layer { transition: none; }
+        .dot, .pill.error { animation: none; }
       }
     </style>
   </head>
   <body>
-    <div class="mic" id="mic">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/>
-        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-      </svg>
+    <div class="pill" id="pill">
+      <div class="layer bars" id="bars"></div>
+      <div class="layer dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="layer label label-copied">Skopiowano</div>
+      <div class="layer label label-error">Błąd</div>
     </div>
+    <script type="module">
+      const pill = document.getElementById("pill");
+      const barsEl = document.getElementById("bars");
+      // Center bars react most, edges least — reads as a voice waveform
+      const SHAPE = [0.35, 0.55, 0.75, 0.9, 1, 0.9, 0.75, 0.55, 0.35];
+      const bars = SHAPE.map(() => {
+        const b = document.createElement("span");
+        b.className = "bar";
+        barsEl.appendChild(b);
+        return b;
+      });
+
+      let target = 0;
+      let current = 0;
+      let revertTimer = null;
+      let raf = null;
+
+      function frame(t) {
+        // Smooth toward the latest mic level so bars don't jitter
+        current += (target - current) * 0.35;
+        bars.forEach((b, i) => {
+          const wobble = 0.75 + 0.25 * Math.sin(t / 120 + i * 1.3);
+          const h = 3 + current * SHAPE[i] * wobble * 19;
+          b.style.height = h.toFixed(1) + "px";
+        });
+        raf = requestAnimationFrame(frame);
+      }
+
+      window.setLevel = (level) => { target = level; };
+
+      window.setState = (state) => {
+        clearTimeout(revertTimer);
+        pill.className = "pill" + (state === "ready" ? "" : " " + state);
+        if (state === "recording") {
+          target = 0;
+          if (!raf) raf = requestAnimationFrame(frame);
+        } else if (raf) {
+          cancelAnimationFrame(raf);
+          raf = null;
+        }
+        // Short-lived states fall back to idle on their own
+        if (state === "copied" || state === "error") {
+          revertTimer = setTimeout(() => window.setState("ready"), state === "error" ? 1800 : 1400);
+        }
+      };
+    </script>
   </body>
 </html>

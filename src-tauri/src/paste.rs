@@ -1,7 +1,12 @@
-pub fn paste_text(text: &str) -> Result<(), String> {
+// auto_paste = false: clipboard only, the user pastes themselves
+pub fn paste_text(text: &str, auto_paste: bool) -> Result<(), String> {
     // Set clipboard (arboard is thread-safe)
     let mut clipboard = arboard::Clipboard::new().map_err(|e| e.to_string())?;
     clipboard.set_text(text).map_err(|e| e.to_string())?;
+
+    if !auto_paste {
+        return Ok(());
+    }
 
     // Small delay to ensure clipboard is set
     std::thread::sleep(std::time::Duration::from_millis(50));
