@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="system">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -70,52 +70,63 @@
                 <select id="mic-select"></select>
               </div>
             </div>
+            <div class="setting-row">
+              <div class="setting-label">
+                <span class="label-text">Theme</span>
+                <span class="label-hint">App appearance</span>
+              </div>
+              <div class="setting-control">
+                <div class="toggle-group">
+                  <button class="toggle-btn theme-btn" data-theme="dark">Dark</button>
+                  <button class="toggle-btn theme-btn active" data-theme="system">System</button>
+                  <button class="toggle-btn theme-btn" data-theme="light">Light</button>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">
+                <span class="label-text">Always on Top</span>
+                <span class="label-hint">Keep mic indicator above all other windows</span>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="always-on-top" checked />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">
+                <span class="label-text">Indicator Position</span>
+                <span class="label-hint">Where the mic icon appears on screen</span>
+              </div>
+              <div class="setting-control">
+                <div class="position-grid" id="position-grid">
+                  <button class="pos-btn" data-pos="top-left">↖</button>
+                  <button class="pos-btn" data-pos="top-center">↑</button>
+                  <button class="pos-btn" data-pos="top-right">↗</button>
+                  <button class="pos-btn" data-pos="bottom-left">↙</button>
+                  <button class="pos-btn" data-pos="bottom-center">↓</button>
+                  <button class="pos-btn" data-pos="bottom-right">↘</button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         <section id="section-engine" class="content-section">
           <div class="section-header">
             <h2 class="section-title">Engine</h2>
-            <p class="section-desc">Choose your transcription backend</p>
+            <p class="section-desc">OpenAI Whisper API transcription</p>
           </div>
           <div class="settings-list">
             <div class="setting-row">
               <div class="setting-label">
-                <span class="label-text">Transcription Engine</span>
-                <span class="label-hint">Local runs on-device, Cloud requires an API key</span>
+                <span class="label-text">OpenAI API Key</span>
+                <span class="label-hint">Get your key from platform.openai.com/api-keys</span>
               </div>
               <div class="setting-control">
-                <div class="toggle-group">
-                  <button id="engine-local" class="toggle-btn active">Local Whisper</button>
-                  <button id="engine-cloud" class="toggle-btn">Groq Cloud</button>
-                </div>
-              </div>
-            </div>
-            <div class="setting-row" id="local-settings">
-              <div class="setting-label">
-                <span class="label-text">Model Size</span>
-                <span class="label-hint">Larger models are more accurate but use more resources</span>
-              </div>
-              <div class="setting-control">
-                <div class="model-row">
-                  <select id="model-select">
-                    <option value="small">Small (~466 MB)</option>
-                    <option value="medium">Medium (~1.5 GB)</option>
-                  </select>
-                  <button id="download-btn" class="btn-primary">Download</button>
-                </div>
-              </div>
-            </div>
-            <div id="download-progress" class="hidden">
-              <div id="progress-bar"><div id="progress-fill"></div></div>
-            </div>
-            <div class="setting-row hidden" id="cloud-settings">
-              <div class="setting-label">
-                <span class="label-text">Groq API Key</span>
-                <span class="label-hint">Get your key from console.groq.com</span>
-              </div>
-              <div class="setting-control">
-                <input type="password" id="groq-key" placeholder="gsk_..." />
+                <input type="password" id="openai-key" placeholder="sk-..." />
               </div>
             </div>
           </div>
@@ -124,28 +135,25 @@
         <section id="section-recording" class="content-section">
           <div class="section-header">
             <h2 class="section-title">Recording</h2>
-            <p class="section-desc">Configure how you trigger transcription</p>
+            <p class="section-desc">Configure your hotkeys — both work independently</p>
           </div>
           <div class="settings-list">
             <div class="setting-row">
               <div class="setting-label">
-                <span class="label-text">Recording Mode</span>
-                <span class="label-hint">Toggle starts/stops, Push to Talk records while held</span>
+                <span class="label-text">Toggle Hotkey</span>
+                <span class="label-hint">Press once to start, press again to stop &amp; transcribe</span>
               </div>
               <div class="setting-control">
-                <div class="toggle-group">
-                  <button id="mode-toggle" class="toggle-btn active">Toggle</button>
-                  <button id="mode-ptt" class="toggle-btn">Push to Talk</button>
-                </div>
+                <button id="hotkey-toggle-btn" class="hotkey-btn">⌘ ⇧ Space</button>
               </div>
             </div>
             <div class="setting-row">
               <div class="setting-label">
-                <span class="label-text">Hotkey</span>
-                <span class="label-hint">Global keyboard shortcut to trigger recording</span>
+                <span class="label-text">Push to Talk Hotkey</span>
+                <span class="label-hint">Hold to record, release to transcribe</span>
               </div>
               <div class="setting-control">
-                <kbd id="hotkey-text">Cmd+Shift+D</kbd>
+                <button id="hotkey-ptt-btn" class="hotkey-btn">⇧ ⌥ Space</button>
               </div>
             </div>
           </div>

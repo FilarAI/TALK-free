@@ -5,10 +5,12 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 interface Settings {
   microphone: string;
   engine: string;
-  whisperModel: string;
-  groqApiKey: string;
-  recordingMode: string;
-  hotkey: string;
+  openaiApiKey: string;
+  hotkeyToggle: string;
+  hotkeyPtt: string;
+  overlayPosition: string;
+  overlayAlwaysOnTop: boolean;
+  theme: string;
 }
 
 interface MicDevice {
@@ -16,30 +18,16 @@ interface MicDevice {
   is_default: boolean;
 }
 
-interface DownloadProgress {
-  downloaded: number;
-  total: number;
-  percent: number;
-}
-
-// DOM elements
 const statusDot = document.getElementById("status-dot")!;
 const statusText = document.getElementById("status-text")!;
 const micSelect = document.getElementById("mic-select") as HTMLSelectElement;
-const engineLocal = document.getElementById("engine-local")!;
-const engineCloud = document.getElementById("engine-cloud")!;
-const localSettings = document.getElementById("local-settings")!;
-const cloudSettings = document.getElementById("cloud-settings")!;
-const modelSelect = document.getElementById("model-select") as HTMLSelectElement;
-const downloadBtn = document.getElementById("download-btn")!;
-const downloadProgress = document.getElementById("download-progress")!;
-const progressFill = document.getElementById("progress-fill")!;
-const groqKey = document.getElementById("groq-key") as HTMLInputElement;
-const modeToggle = document.getElementById("mode-toggle")!;
-const modePtt = document.getElementById("mode-ptt")!;
-const hotkeyText = document.getElementById("hotkey-text")!;
+const openaiKey = document.getElementById("openai-key") as HTMLInputElement;
+const hotkeyToggleBtn = document.getElementById("hotkey-toggle-btn")!;
+const hotkeyPttBtn = document.getElementById("hotkey-ptt-btn")!;
+const positionBtns = document.querySelectorAll<HTMLButtonElement>(".pos-btn");
+const alwaysOnTopCheck = document.getElementById("always-on-top") as HTMLInputElement;
+const themeBtns = document.querySelectorAll<HTMLButtonElement>(".theme-btn");
 
-// Section navigation
 const navItems = document.querySelectorAll(".nav-item");
 const sections = document.querySelectorAll(".content-section");
 
@@ -53,7 +41,6 @@ navItems.forEach((item) => {
   });
 });
 
-// Window drag — titlebar and sidebar empty space
 const titlebar = document.getElementById("titlebar")!;
 const sidebar = document.getElementById("sidebar")!;
 const appWindow = getCurrentWindow();
@@ -70,10 +57,90 @@ sidebar.addEventListener("mousedown", (e) => {
 
 let currentSettings: Settings;
 
+function formatHotkey(raw: string): string {
+  return raw.replace("CmdOrCtrl", "⌘").replace("Shift", "⇧").replace("Alt", "⌥").replace(/\+/g, " ");
+}
+
+function codeToTauri(code: string): string {
+  if (code.startsWith("Key")) return code.slice(3);
+  if (code.startsWith("Digit")) return code.slice(5);
+  if (code === "Space") return "Space";
+  if (code === "Backquote") return "`";
+  if (code === "Minus") return "-";
+  if (code === "Equal") return "=";
+  if (code === "BracketLeft") return "[";
+  if (code === "BracketRight") return "]";
+  if (code === "Backslash") return "\\";
+  if (code === "Semicolon") return ";";
+  if (code === "Quote") return "'";
+  if (code === "Comma") return ",";
+  if (code === "Period") return ".";
+  if (code === "Slash") return "/";
+  if (code.startsWith("F") && !isNaN(Number(code.slice(1)))) return code;
+  return code;
+}
+
+function captureHotkey(btn: HTMLElement, onCapture: (combo: string) => void) {
+  const original = btn.textContent!;
+  btn.textContent = "Press keys…";
+  btn.classList.add("capturing");
+
+  const held = new Set<string>();
+
+  const MODIFIER_CODES = new Set([
+    "MetaLeft", "MetaRight", "ControlLeft", "ControlRight",
+    "ShiftLeft", "ShiftRight", "AltLeft", "AltRight",
+  ]);
+
+  const cleanup = () => {
+    window.removeEventListener("keydown", onDown, true);
+    window.removeEventListener("keyup", onUp, true);
+  };
+
+  const onDown = (e: KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.key === "Escape") {
+      cleanup();
+      btn.textContent = original;
+      btn.classList.remove("capturing");
+      return;
+    }
+
+    held.add(e.code);
+
+    const nonMods = [...held].filter(c => !MODIFIER_CODES.has(c));
+    if (nonMods.length === 0) return; // still waiting for non-modifier
+
+    const parts: string[] = [];
+    const hasCmdCtrl = held.has("MetaLeft") || held.has("MetaRight") || held.has("ControlLeft") || held.has("ControlRight");
+    const hasShift   = held.has("ShiftLeft") || held.has("ShiftRight");
+    const hasAlt     = held.has("AltLeft") || held.has("AltRight");
+
+    if (hasCmdCtrl) parts.push("CmdOrCtrl");
+    if (hasShift)   parts.push("Shift");
+    if (hasAlt)     parts.push("Alt");
+    nonMods.forEach(c => parts.push(codeToTauri(c)));
+
+    const combo = parts.join("+");
+    btn.textContent = formatHotkey(combo);
+    btn.classList.remove("capturing");
+    cleanup();
+    onCapture(combo);
+  };
+
+  const onUp = (e: KeyboardEvent) => {
+    held.delete(e.code);
+  };
+
+  window.addEventListener("keydown", onDown, true);
+  window.addEventListener("keyup", onUp, true);
+}
+
 async function loadSettings() {
   currentSettings = await invoke<Settings>("get_settings");
 
-  // Populate mic dropdown
   const mics = await invoke<MicDevice[]>("list_microphones");
   micSelect.innerHTML = "";
   mics.forEach((mic) => {
@@ -84,99 +151,76 @@ async function loadSettings() {
   });
   micSelect.value = currentSettings.microphone;
 
-  // Engine
-  setEngine(currentSettings.engine);
-
-  // Model
-  modelSelect.value = currentSettings.whisperModel;
-  await checkModelStatus();
-
-  // Groq key
-  groqKey.value = currentSettings.groqApiKey;
-
-  // Recording mode
-  setRecordingMode(currentSettings.recordingMode);
-
-  // Hotkey
-  hotkeyText.textContent = currentSettings.hotkey.replace("CmdOrCtrl", "Cmd");
+  openaiKey.value = currentSettings.openaiApiKey;
+  hotkeyToggleBtn.textContent = formatHotkey(currentSettings.hotkeyToggle);
+  hotkeyPttBtn.textContent = formatHotkey(currentSettings.hotkeyPtt);
+  setActivePosition(currentSettings.overlayPosition);
+  alwaysOnTopCheck.checked = currentSettings.overlayAlwaysOnTop;
+  applyTheme(currentSettings.theme);
 }
 
-function setEngine(engine: string) {
-  currentSettings.engine = engine;
-  engineLocal.classList.toggle("active", engine === "local");
-  engineCloud.classList.toggle("active", engine === "cloud");
-  localSettings.classList.toggle("hidden", engine !== "local");
-  cloudSettings.classList.toggle("hidden", engine !== "cloud");
+function setActivePosition(pos: string) {
+  positionBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.pos === pos));
 }
 
-function setRecordingMode(mode: string) {
-  currentSettings.recordingMode = mode;
-  modeToggle.classList.toggle("active", mode === "toggle");
-  modePtt.classList.toggle("active", mode === "push-to-talk");
-}
-
-async function checkModelStatus() {
-  const downloaded = await invoke<boolean>("check_model_downloaded", {
-    modelSize: modelSelect.value,
-  });
-  downloadBtn.textContent = downloaded ? "\u2713" : "Download";
-  (downloadBtn as HTMLButtonElement).disabled = downloaded;
+function applyTheme(theme: string) {
+  document.documentElement.setAttribute("data-theme", theme);
+  themeBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.theme === theme));
 }
 
 async function saveSettings() {
   currentSettings.microphone = micSelect.value;
-  currentSettings.whisperModel = modelSelect.value;
-  currentSettings.groqApiKey = groqKey.value;
+  currentSettings.openaiApiKey = openaiKey.value;
   await invoke("save_settings", { settings: currentSettings });
 }
 
-// Event listeners
-engineLocal.addEventListener("click", () => {
-  setEngine("local");
-  saveSettings();
-});
-
-engineCloud.addEventListener("click", () => {
-  setEngine("cloud");
-  saveSettings();
-});
+async function saveAndReloadShortcuts() {
+  await saveSettings();
+  await invoke("update_shortcuts");
+}
 
 micSelect.addEventListener("change", () => saveSettings());
+openaiKey.addEventListener("change", () => saveSettings());
 
-modelSelect.addEventListener("change", async () => {
-  await checkModelStatus();
-  saveSettings();
+positionBtns.forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const pos = btn.dataset.pos!;
+    currentSettings.overlayPosition = pos;
+    setActivePosition(pos);
+    await saveSettings();
+    await invoke("update_overlay_position");
+  });
 });
 
-downloadBtn.addEventListener("click", async () => {
-  (downloadBtn as HTMLButtonElement).disabled = true;
-  downloadProgress.classList.remove("hidden");
-  progressFill.style.width = "0%";
-
-  try {
-    await invoke("download_model", { modelSize: modelSelect.value });
-    downloadBtn.textContent = "\u2713";
-  } catch (e) {
-    downloadBtn.textContent = "Retry";
-    (downloadBtn as HTMLButtonElement).disabled = false;
-    console.error("Download failed:", e);
-  }
-  downloadProgress.classList.add("hidden");
+alwaysOnTopCheck.addEventListener("change", async () => {
+  currentSettings.overlayAlwaysOnTop = alwaysOnTopCheck.checked;
+  await saveSettings();
+  await invoke("update_overlay_position");
 });
 
-groqKey.addEventListener("change", () => saveSettings());
-
-modeToggle.addEventListener("click", () => {
-  setRecordingMode("toggle");
-  saveSettings();
+themeBtns.forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const theme = btn.dataset.theme!;
+    currentSettings.theme = theme;
+    applyTheme(theme);
+    await saveSettings();
+  });
 });
 
-modePtt.addEventListener("click", () => {
-  setRecordingMode("push-to-talk");
-  saveSettings();
+hotkeyToggleBtn.addEventListener("click", () => {
+  captureHotkey(hotkeyToggleBtn, async (combo) => {
+    currentSettings.hotkeyToggle = combo;
+    await saveAndReloadShortcuts();
+  });
 });
 
-// Listen for recording state changes
+hotkeyPttBtn.addEventListener("click", () => {
+  captureHotkey(hotkeyPttBtn, async (combo) => {
+    currentSettings.hotkeyPtt = combo;
+    await saveAndReloadShortcuts();
+  });
+});
+
 listen<string>("recording-state", (event) => {
   const state = event.payload;
   statusDot.className = "";
@@ -192,11 +236,4 @@ listen<string>("recording-state", (event) => {
   }
 });
 
-// Listen for download progress
-listen<DownloadProgress>("download-progress", (event) => {
-  const { percent } = event.payload;
-  progressFill.style.width = `${percent}%`;
-});
-
-// Initialize
 loadSettings();
